@@ -1,0 +1,44 @@
+{
+  "name": "lumina",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host --port 45219",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview --host --port 45219",
+    "start": "node scripts/control.mjs starten",
+    "starten": "node scripts/control.mjs starten",
+    "stop": "node scripts/control.mjs stoppen",
+    "stoppen": "node scripts/control.mjs stoppen",
+    "update": "node scripts/control.mjs updaten",
+    "updaten": "node scripts/control.mjs updaten",
+    "neustart": "node scripts/control.mjs neustart",
+    "version:stand": "node scripts/version.mjs status",
+    "version:stabil": "node scripts/version.mjs stable",
+    "version:test-anlegen": "node scripts/version.mjs new-test",
+    "version:test-laden": "node scripts/version.mjs open-test",
+    "version:stand-sichern": "node scripts/version.mjs save",
+    "version:stand-laden": "node scripts/version.mjs load"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.12",
+    "lucide-react": "^0.542.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwind-merge": "^3.3.1",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.12",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "oxlint": "^1.75.0",
+    "tailwindcss": "^4.1.12",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
