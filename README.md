@@ -1,5 +1,7 @@
 # Lumina
 
+https://markovigele.github.io/lumina/
+
 Eine interaktive 2D-Partikel- und Rauchsimulation. Weich, hochauflösend und nicht fotorealistisch — eher ein digitales Kunstwerk als eine Physik-Demo.
 
 Lumina hält visuelle Qualität, Farbe, Physik, Schwarm-KI, Interaktion, kreative Modi und ein volles Einstellungs-/Preset-/Save-System auf derselben Ebene.
