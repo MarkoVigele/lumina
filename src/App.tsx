@@ -333,7 +333,7 @@ export default function App() {
       />
 
       {panelOpen && (
-        <div className="lumina-sidebar pointer-events-none absolute top-0 right-0 z-20 h-[calc(100dvh-4.5rem)] w-[min(78vw,300px)] pt-[max(0.35rem,env(safe-area-inset-top))] md:hidden">
+        <div className="lumina-sidebar pointer-events-none absolute top-0 right-0 z-20 h-[calc(100dvh-4.5rem)] w-[min(240px,62%)] pt-[max(0.35rem,env(safe-area-inset-top))] md:hidden">
           <div className="pointer-events-auto h-full">
             <SwipeSidebar onClose={() => setPanelOpen(false)}>
               <ControlPanel
