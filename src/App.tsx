@@ -12,6 +12,11 @@ import { MobileSidebar } from './ui/swipe-sidebar'
 
 const sim = new Simulation()
 
+/** World clock. Independent of display FPS and of touch. */
+const SIM_DT = 1 / 60
+const MAX_SIM_STEPS = 8
+const MAX_FRAME_DT = 0.25
+
 function worldFromEvent(el: HTMLCanvasElement, ev: PointerEvent): { x: number; y: number } {
   const rect = el.getBoundingClientRect()
   return {
@@ -32,6 +37,7 @@ export default function App() {
   const paramsRef = useRef(useLumina.getState().params)
   const lastRef = useRef(0)
   const accRef = useRef(0)
+  const lastRenderRef = useRef(0)
   const lastClick = useRef(0)
   const dragEmitter = useRef<string | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
@@ -84,30 +90,44 @@ export default function App() {
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop)
       const p = paramsRef.current
-      const raw = Math.min(0.05, (now - lastRef.current) / 1000)
+      if (lastRef.current === 0) lastRef.current = now
+      const raw = Math.min(MAX_FRAME_DT, Math.max(0, (now - lastRef.current) / 1000))
       lastRef.current = now
-      const minDt = p.graphics.vsync ? 0 : 1 / Math.max(24, p.graphics.fpsLimit)
-      accRef.current += raw
-      if (!p.graphics.vsync && accRef.current < minDt) return
-      const dt = p.graphics.vsync ? raw : accRef.current
-      accRef.current = 0
 
       if (p.graphics.resolutionScale !== lastScale || p.graphics.quality !== lastQuality) {
         lastScale = p.graphics.resolutionScale
         lastQuality = p.graphics.quality
         renderer.resize(window.innerWidth, window.innerHeight, lastScale, lastQuality)
       }
-
-      const t0 = performance.now()
-      const list = [...pointers.current.values()]
       if (sim.width !== window.innerWidth || sim.height !== window.innerHeight) {
         sim.resize(window.innerWidth, window.innerHeight)
       }
-      sim.step(p, list, dt)
+
+      const list = [...pointers.current.values()]
+      if (!sim.paused) {
+        accRef.current += raw
+        let steps = 0
+        while (accRef.current >= SIM_DT && steps < MAX_SIM_STEPS) {
+          sim.step(p, list, SIM_DT)
+          accRef.current -= SIM_DT
+          steps++
+        }
+        if (steps >= MAX_SIM_STEPS) accRef.current = 0
+      }
+
       if (sim.shapes.cycledTo) {
         useLumina.getState().setSection('shape', { shape: sim.shapes.cycledTo }, { silent: true })
       }
+
+      const uncapped = p.graphics.vsync
+      const minRenderMs = uncapped ? 0 : 1000 / Math.max(1, p.graphics.fpsLimit)
+      if (!uncapped && lastRenderRef.current !== 0 && now - lastRenderRef.current < minRenderMs - 0.5) {
+        return
+      }
+
+      const t0 = performance.now()
       renderer.render(sim, p, list, useLumina.getState().selectedEmitterId)
+      lastRenderRef.current = now
       lastMs = performance.now() - t0
       frames++
       if (now - fpsT > 400) {

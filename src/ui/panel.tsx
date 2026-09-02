@@ -30,9 +30,9 @@ import { ChipRow, ColorField, Details, Group, HoverKbd, MixRow, Row, Select, Sli
 import {
   HINT,
   chromaHint,
+  displayFpsMode,
   formOwnsField,
   formPulls,
-  fpsLimitHint,
   kaleidoHint,
   kiHint,
   kiLocked,
@@ -180,7 +180,6 @@ export function ControlPanel({
   const mirrorHint = kaleidoHint(params.creative)
   const fadeHint = trailHint(params.graphics)
   const fringeHint = chromaHint(params.graphics)
-  const limitHint = fpsLimitHint(params.graphics)
 
   const colorNote = useMemo(
     () => COLOR_PRESETS.find((p) => p.id === store.colorPresetId)?.note,
@@ -936,6 +935,23 @@ export function ControlPanel({
               <Row>
                 <ChipRow value={params.graphics.quality} options={Object.values(Quality).map((id) => ({ id, name: QUALITY_LABEL[id] }))} onChange={(quality) => store.setQuality(quality as typeof params.graphics.quality)} />
               </Row>
+              <Row>
+                <p className="mb-1.5 font-ui text-[13px] text-white/78">Bildrate</p>
+                <ChipRow
+                  value={displayFpsMode(params.graphics)}
+                  options={[
+                    { id: '30', name: '30' },
+                    { id: '60', name: '60' },
+                    { id: '120', name: '120' },
+                    { id: 'auto', name: 'Automatisch' },
+                  ]}
+                  onChange={(id) => {
+                    if (id === 'auto') store.setSection('graphics', { vsync: true })
+                    else store.setSection('graphics', { vsync: false, fpsLimit: Number(id) })
+                  }}
+                />
+                <p className="mt-1.5 font-ui text-[11px] leading-snug text-white/34">Nur Anzeige. Die Simulation läuft fest.</p>
+              </Row>
               <Row><Toggle label="Glow" checked={params.graphics.glow} onChange={(glow) => store.setSection('graphics', { glow })} /></Row>
               <Row><Toggle label="Spuren" checked={params.graphics.trails} onChange={(trails) => store.setSection('graphics', { trails })} /></Row>
               <Row>
@@ -956,8 +972,6 @@ export function ControlPanel({
                 <Row><Toggle label="Post-Effekte" checked={params.graphics.postEffects} onChange={(postEffects) => store.setSection('graphics', { postEffects })} /></Row>
                 <Row><Toggle label="Chromatische Aberration" checked={params.graphics.chromaticAberration} disabled={Boolean(fringeHint)} hint={fringeHint} onChange={(chromaticAberration) => store.setSection('graphics', { chromaticAberration })} /></Row>
                 <Row><Slider label="Auflösung" value={params.graphics.resolutionScale} min={0.5} max={1.25} step={0.05} defaultValue={d.graphics.resolutionScale} onChange={(resolutionScale) => store.setSection('graphics', { resolutionScale })} /></Row>
-                <Row><Slider label="FPS-Limit" value={params.graphics.fpsLimit} min={24} max={120} step={1} defaultValue={d.graphics.fpsLimit} disabled={Boolean(limitHint)} hint={limitHint} onChange={(fpsLimit) => store.setSection('graphics', { fpsLimit })} /></Row>
-                <Row><Toggle label="VSync (Browser)" checked={params.graphics.vsync} onChange={(vsync) => store.setSection('graphics', { vsync })} /></Row>
                 <Row><Toggle label="FPS- und Speicheranzeige" checked={params.graphics.showPerf !== false} onChange={(showPerf) => store.setSection('graphics', { showPerf })} /></Row>
               </Details>
             </Group>

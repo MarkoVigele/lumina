@@ -119,7 +119,7 @@ export const DEFAULT_PARAMS: SimParams = {
     softParticles: true,
     chromaticAberration: false,
     resolutionScale: 0.85,
-    vsync: true,
+    vsync: false,
     fpsLimit: 60,
     particleCap: 3200,
     trails: true,
