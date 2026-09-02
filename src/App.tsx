@@ -8,8 +8,7 @@ import { ControlPanel } from './ui/panel'
 import { Toolbar } from './ui/toolbar'
 import { Onboarding } from './ui/onboarding'
 import { PerfHud } from './ui/perf-hud'
-import { SwipeSidebar } from './ui/swipe-sidebar'
-import { SlidersHorizontal } from 'lucide-react'
+import { MobileSidebar } from './ui/swipe-sidebar'
 
 const sim = new Simulation()
 
@@ -333,27 +332,11 @@ export default function App() {
         className={`absolute inset-0 h-full w-full touch-none ${placeMode ? 'cursor-crosshair' : ''}`}
       />
 
-      {panelOpen && (
-        <div className="lumina-sidebar pointer-events-none absolute top-0 right-0 z-20 h-[calc(100dvh-4.5rem)] w-[min(240px,62%)] pt-[max(0.35rem,env(safe-area-inset-top))] md:hidden">
-          <div className="pointer-events-auto h-full">
-            <SwipeSidebar onClose={() => setPanelOpen(false)}>
-              <ControlPanel compact />
-            </SwipeSidebar>
-          </div>
-        </div>
-      )}
-
-      {!panelOpen && (
-        <button
-          type="button"
-          title="Einstellungen"
-          aria-label="Einstellungen"
-          className="pointer-events-auto absolute top-[38%] right-0 z-20 flex h-16 w-7 items-center justify-center rounded-l-xl border border-r-0 border-white/10 bg-[#16181e]/80 text-white/70 md:hidden"
-          onClick={() => setPanelOpen(true)}
-        >
-          <SlidersHorizontal size={16} />
-        </button>
-      )}
+      <div className="md:hidden">
+        <MobileSidebar open={panelOpen} onOpen={() => setPanelOpen(true)} onClose={() => setPanelOpen(false)}>
+          <ControlPanel compact />
+        </MobileSidebar>
+      </div>
 
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pt-[max(0.75rem,env(safe-area-inset-top))] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] md:p-5">
         <div className="flex items-start justify-between gap-3">

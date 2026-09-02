@@ -10,7 +10,7 @@ export function Group({
   return (
     <div className="overflow-hidden rounded-[16px] bg-white/[0.05] ring-1 ring-white/8">
       {title && (
-        <p className="px-3.5 pt-2.5 pb-0.5 font-ui text-[11px] font-medium tracking-wide text-white/38">{title}</p>
+        <p className="truncate px-3.5 pt-2.5 pb-0.5 font-ui text-[11px] font-medium tracking-wide text-white/38">{title}</p>
       )}
       <div className="divide-y divide-white/6">{children}</div>
     </div>
@@ -18,7 +18,7 @@ export function Group({
 }
 
 export function Row({ children }: { children: ReactNode }) {
-  return <div className="px-3.5 py-2">{children}</div>
+  return <div className="min-w-0 px-3.5 py-2">{children}</div>
 }
 
 /** Fine-tuning drawer. Lives inside a Group, after the few primary rows. */

@@ -259,8 +259,8 @@ export function ControlPanel({
               }`}
             >
               <Icon size={18} strokeWidth={1.75} style={live && !active ? { color: live } : undefined} />
-              <span className="flex items-center gap-1">
-                <span className="font-ui text-[10px] font-medium">{item.name}</span>
+              <span className="flex max-w-full items-center justify-center gap-1">
+                <span className="max-w-full truncate px-0.5 text-center font-ui text-[10px] font-medium">{item.name}</span>
                 {live && (
                   <span
                     className="h-1.5 w-1.5 rounded-full"
