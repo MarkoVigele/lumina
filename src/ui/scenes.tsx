@@ -45,7 +45,7 @@ export function SceneOverview({
                         active ? 'bg-white/14 ring-white/22' : 'bg-black/20 ring-white/6 hover:bg-white/6'
                       }`}
                     >
-                      <p className="line-clamp-2 break-words font-ui text-[12px] leading-snug text-white/90 md:text-[13px]">
+                      <p className="line-clamp-2 max-w-full overflow-hidden hyphens-none break-normal font-ui text-[11px] leading-tight text-white/90 md:text-[13px] md:leading-snug">
                         {card.name}
                       </p>
                       <div className="mt-1.5 flex h-1.5 overflow-hidden rounded-full">
