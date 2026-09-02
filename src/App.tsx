@@ -337,13 +337,13 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex items-end justify-between gap-3 max-md:flex-col max-md:items-stretch">
+        <div className="mt-auto flex w-full items-end justify-between gap-3 max-md:flex-col max-md:items-stretch">
           <div className="max-md:hidden">
             <Onboarding />
           </div>
-          <div className="flex flex-1 flex-col items-end gap-2 max-md:items-stretch max-md:gap-0 md:gap-3">
+          <div className="flex w-full flex-col items-end gap-2 max-md:items-stretch max-md:gap-0 md:w-auto md:flex-1 md:gap-3">
             {panelOpen && (
-              <div className="h-[min(48dvh,420px)] w-full md:h-[min(70dvh,760px)] md:w-auto">
+              <div className="lumina-sheet h-[min(48dvh,420px)] w-full shrink-0 md:h-[min(70dvh,760px)] md:w-auto">
                 <ControlPanel
                   fps={stats.fps}
                   particles={stats.particles}
@@ -352,7 +352,7 @@ export default function App() {
                 />
               </div>
             )}
-            <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0">
+            <div className="shrink-0 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0">
               <Toolbar
                 paused={paused}
                 recording={recording}

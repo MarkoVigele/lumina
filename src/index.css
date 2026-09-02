@@ -133,6 +133,12 @@ body {
 }
 
 @media (max-width: 767px) {
+  .lumina-sheet {
+    height: min(48dvh, 420px);
+    max-height: 48svh;
+    max-height: 48dvh;
+  }
+
   .lumina-icon {
     height: 44px;
     width: 44px;
