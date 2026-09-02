@@ -13,6 +13,7 @@ import {
   Radio,
   Undo2,
   Redo2,
+  X,
 } from 'lucide-react'
 import { COLOR_PRESETS, EXPLOSION_PRESETS, MIX_PRESETS, SHAPE_PRESETS } from '../state/presets'
 import { ColorPaletteGrid } from './color-palettes'
@@ -29,9 +30,9 @@ import { ChipRow, ColorField, Details, Group, HoverKbd, MixRow, Row, Select, Sli
 import {
   HINT,
   chromaHint,
+  displayFpsMode,
   formOwnsField,
   formPulls,
-  fpsLimitHint,
   kaleidoHint,
   kiHint,
   kiLocked,
@@ -131,27 +132,37 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
+const MOBILE_TAB_IDS: TabId[] = [
+  'shape',
+  'physics',
+  'swarm',
+  'emitters',
+  'explosion',
+  'color',
+  'creative',
+  'graphics',
+  'saves',
+  'presets',
+]
+
 const TRAIL_MIN = 0.12
 const TRAIL_MAX = 0.85
 const trailLength = (fade: number) => TRAIL_MAX + TRAIL_MIN - fade
 const trailFade = (length: number) => TRAIL_MAX + TRAIL_MIN - length
 
 export function ControlPanel({
-  fps,
-  particles,
-  frameMs,
-  memoryMb,
+  compact = false,
 }: {
-  fps: number
-  particles: number
-  frameMs: number
-  memoryMb: number | null
+  compact?: boolean
 }) {
   const store = useLumina()
   const { params } = store
   const tab = (TABS.some((item) => item.id === store.panelTab) ? store.panelTab : 'presets') as TabId
   const setTab = (id: TabId) => store.setPanelTab(id)
   const [saveName, setSaveName] = useState('Meine Szene')
+  const rail = compact
+    ? MOBILE_TAB_IDS.map((id) => TABS.find((item) => item.id === id)!).filter(Boolean)
+    : TABS
   const d = DEFAULT_PARAMS
   const form = params.shape ?? d.shape
   const exp = params.explosion ?? d.explosion
@@ -169,7 +180,6 @@ export function ControlPanel({
   const mirrorHint = kaleidoHint(params.creative)
   const fadeHint = trailHint(params.graphics)
   const fringeHint = chromaHint(params.graphics)
-  const limitHint = fpsLimitHint(params.graphics)
 
   const colorNote = useMemo(
     () => COLOR_PRESETS.find((p) => p.id === store.colorPresetId)?.note,
@@ -188,6 +198,14 @@ export function ControlPanel({
     [store.mixPresetId],
   )
 
+  const liveOf = (id: string) => {
+    if (id === 'shape') return form.enabled ? LIVE_FORM : undefined
+    if (id === 'explosion') return exp.enabled ? LIVE_EXPLOSION : undefined
+    if (id === 'swarm') return LIVE_KI[params.swarm.intelligence]
+    if (id === 'emitters') return params.emitters?.items.some((em) => em.enabled) ? '#f3b27a' : undefined
+    return undefined
+  }
+
   const resetTab = () => {
     if (tab === 'presets') store.resetAll()
     else if (tab === 'physics') store.resetSection('physics')
@@ -202,30 +220,25 @@ export function ControlPanel({
   }
 
   return (
-    <aside className="pointer-events-auto flex h-full w-[min(100vw-24px,460px)] overflow-hidden rounded-[22px] border border-white/10 bg-[#16181e]/82 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-      <nav className="flex w-[92px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/8 bg-black/20 px-1.5 py-2">
-        {TABS.map((item) => {
+    <aside
+      className={`pointer-events-auto flex h-full overflow-hidden border border-white/10 bg-[#16181e]/82 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl ${
+        compact
+          ? 'w-full rounded-l-[22px] rounded-r-none border-r-0'
+          : 'w-[min(100vw-24px,460px)] rounded-[22px]'
+      }`}
+    >
+      <nav
+        className={`flex shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/8 bg-black/20 ${
+          compact ? 'w-[68px] px-1 py-1.5' : 'w-[92px] px-1.5 py-2'
+        }`}
+      >
+        {rail.map((item) => {
           const Icon = item.icon
           const active = tab === item.id
-          const shortcut = 'shortcut' in item ? item.shortcut : undefined
-          const live =
-            item.id === 'shape'
-              ? form.enabled
-                ? LIVE_FORM
-                : undefined
-              : item.id === 'explosion'
-                ? exp.enabled
-                  ? LIVE_EXPLOSION
-                  : undefined
-                : item.id === 'swarm'
-                  ? LIVE_KI[params.swarm.intelligence]
-                  : item.id === 'emitters'
-                    ? params.emitters?.items.some((em) => em.enabled)
-                      ? '#f3b27a'
-                      : undefined
-                    : undefined
+          const shortcut = compact ? undefined : 'shortcut' in item ? item.shortcut : undefined
+          const live = liveOf(item.id)
           const title =
-            'shortcut' in item && item.shortcut
+            !compact && 'shortcut' in item && item.shortcut
               ? `${item.name} · ${item.shortcutHint} (${item.shortcut})`
               : item.name
           return (
@@ -234,7 +247,9 @@ export function ControlPanel({
               type="button"
               title={title}
               onClick={() => setTab(item.id)}
-              className={`group relative flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[14px] px-1 ${
+              className={`group relative flex flex-col items-center justify-center gap-1 rounded-[14px] px-1 ${
+                compact ? 'min-h-[44px]' : 'min-h-[52px]'
+              } ${
                 active
                   ? 'bg-white/12 text-white'
                   : live
@@ -243,8 +258,8 @@ export function ControlPanel({
               }`}
             >
               <Icon size={18} strokeWidth={1.75} style={live && !active ? { color: live } : undefined} />
-              <span className="flex items-center gap-1">
-                <span className="font-ui text-[10px] font-medium">{item.name}</span>
+              <span className="flex max-w-full items-center justify-center gap-1">
+                <span className="max-w-full truncate px-0.5 text-center font-ui text-[10px] font-medium">{item.name}</span>
                 {live && (
                   <span
                     className="h-1.5 w-1.5 rounded-full"
@@ -259,41 +274,48 @@ export function ControlPanel({
         })}
       </nav>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-start justify-between gap-3 px-4 pt-3.5 pb-2">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex items-start justify-between gap-3 px-3 pt-2.5 pb-2 md:px-4 md:pt-3.5">
           <div>
-            <p className="font-display text-[22px] leading-none tracking-tight text-white/94">Lumina</p>
+            <p className="font-display text-[18px] leading-none tracking-tight text-white/94 md:text-[22px]">Lumina</p>
             <p className="mt-1 font-ui text-[11px] text-white/38">{TABS.find((t) => t.id === tab)?.name}</p>
-            {params.graphics.showPerf !== false && (
-              <div className="mt-2 flex flex-wrap gap-2.5 font-ui text-[10px] tabular-nums text-white/32">
-                <span>{fps.toFixed(0)} fps</span>
-                <span>{particles}</span>
-                <span>{frameMs.toFixed(1)} ms</span>
-                {memoryMb != null && <span>{memoryMb.toFixed(0)} MB</span>}
-              </div>
-            )}
           </div>
-          <div className="mt-0.5 flex flex-wrap justify-end gap-1.5">
-            <button
-              type="button"
-              className="lumina-btn"
-              title="Rückgängig (Strg+Z)"
-              disabled={store.past.length === 0}
-              onClick={() => store.undo()}
-            >
-              <Undo2 size={13} />
-              Rückgängig
-            </button>
-            <button
-              type="button"
-              className="lumina-btn"
-              title="Wiederholen (Strg+Y)"
-              disabled={store.future.length === 0}
-              onClick={() => store.redo()}
-            >
-              <Redo2 size={13} />
-              Wiederholen
-            </button>
+          <div className={`mt-0.5 flex flex-wrap justify-end gap-1.5 ${compact ? '' : ''}`}>
+            {compact && (
+              <button
+                type="button"
+                className="lumina-icon"
+                title="Schließen"
+                aria-label="Schließen"
+                onClick={() => store.setPanelOpen(false)}
+              >
+                <X size={16} />
+              </button>
+            )}
+            {!compact && (
+              <>
+                <button
+                  type="button"
+                  className="lumina-btn"
+                  title="Rückgängig (Strg+Z)"
+                  disabled={store.past.length === 0}
+                  onClick={() => store.undo()}
+                >
+                  <Undo2 size={13} />
+                  Rückgängig
+                </button>
+                <button
+                  type="button"
+                  className="lumina-btn"
+                  title="Wiederholen (Strg+Y)"
+                  disabled={store.future.length === 0}
+                  onClick={() => store.redo()}
+                >
+                  <Redo2 size={13} />
+                  Wiederholen
+                </button>
+              </>
+            )}
             {tab !== 'saves' && (
               <button type="button" className="lumina-btn" onClick={resetTab}>
                 Standard
@@ -913,6 +935,23 @@ export function ControlPanel({
               <Row>
                 <ChipRow value={params.graphics.quality} options={Object.values(Quality).map((id) => ({ id, name: QUALITY_LABEL[id] }))} onChange={(quality) => store.setQuality(quality as typeof params.graphics.quality)} />
               </Row>
+              <Row>
+                <p className="mb-1.5 font-ui text-[13px] text-white/78">Bildrate</p>
+                <ChipRow
+                  value={displayFpsMode(params.graphics)}
+                  options={[
+                    { id: '30', name: '30' },
+                    { id: '60', name: '60' },
+                    { id: '120', name: '120' },
+                    { id: 'auto', name: 'Automatisch' },
+                  ]}
+                  onChange={(id) => {
+                    if (id === 'auto') store.setSection('graphics', { vsync: true })
+                    else store.setSection('graphics', { vsync: false, fpsLimit: Number(id) })
+                  }}
+                />
+                <p className="mt-1.5 font-ui text-[11px] leading-snug text-white/34">Nur Anzeige. Die Simulation läuft fest.</p>
+              </Row>
               <Row><Toggle label="Glow" checked={params.graphics.glow} onChange={(glow) => store.setSection('graphics', { glow })} /></Row>
               <Row><Toggle label="Spuren" checked={params.graphics.trails} onChange={(trails) => store.setSection('graphics', { trails })} /></Row>
               <Row>
@@ -933,8 +972,6 @@ export function ControlPanel({
                 <Row><Toggle label="Post-Effekte" checked={params.graphics.postEffects} onChange={(postEffects) => store.setSection('graphics', { postEffects })} /></Row>
                 <Row><Toggle label="Chromatische Aberration" checked={params.graphics.chromaticAberration} disabled={Boolean(fringeHint)} hint={fringeHint} onChange={(chromaticAberration) => store.setSection('graphics', { chromaticAberration })} /></Row>
                 <Row><Slider label="Auflösung" value={params.graphics.resolutionScale} min={0.5} max={1.25} step={0.05} defaultValue={d.graphics.resolutionScale} onChange={(resolutionScale) => store.setSection('graphics', { resolutionScale })} /></Row>
-                <Row><Slider label="FPS-Limit" value={params.graphics.fpsLimit} min={24} max={120} step={1} defaultValue={d.graphics.fpsLimit} disabled={Boolean(limitHint)} hint={limitHint} onChange={(fpsLimit) => store.setSection('graphics', { fpsLimit })} /></Row>
-                <Row><Toggle label="VSync (Browser)" checked={params.graphics.vsync} onChange={(vsync) => store.setSection('graphics', { vsync })} /></Row>
                 <Row><Toggle label="FPS- und Speicheranzeige" checked={params.graphics.showPerf !== false} onChange={(showPerf) => store.setSection('graphics', { showPerf })} /></Row>
               </Details>
             </Group>

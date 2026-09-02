@@ -23,7 +23,7 @@ export function SceneOverview({
 }) {
   return (
     <>
-      <p className="px-1 font-ui text-[12px] text-white/40">
+      <p className="truncate px-1 font-ui text-[11px] text-white/40 md:text-[12px]">
         Vier Arten. Jede Szene bringt Takt und Farbe mit.
       </p>
       {SCENE_GROUPS.map((group) => {
@@ -32,8 +32,8 @@ export function SceneOverview({
         return (
           <Group key={group.id} title={group.title}>
             <Row>
-              <p className="mb-2 font-ui text-[11px] leading-snug text-white/34">{group.blurb}</p>
-              <div className="grid grid-cols-1 gap-2">
+              <p className="mb-2 hidden font-ui text-[11px] leading-snug text-white/34 md:block">{group.blurb}</p>
+              <div className="grid min-w-0 grid-cols-1 gap-2">
                 {cards.map((card) => {
                   const active = activeId === card.id
                   return (
@@ -41,17 +41,19 @@ export function SceneOverview({
                       key={card.id}
                       type="button"
                       onClick={() => onPick(card.id)}
-                      className={`rounded-[12px] px-3 py-2 text-left ring-1 ${
+                      className={`w-full min-w-0 overflow-hidden rounded-[12px] px-2.5 py-1.5 text-left ring-1 md:px-3 md:py-2 ${
                         active ? 'bg-white/14 ring-white/22' : 'bg-black/20 ring-white/6 hover:bg-white/6'
                       }`}
                     >
-                      <p className="font-ui text-[13px] text-white/90">{card.name}</p>
+                      <p className="line-clamp-2 max-w-full overflow-hidden hyphens-none break-normal font-ui text-[11px] leading-tight text-white/90 md:text-[13px] md:leading-snug">
+                        {card.name}
+                      </p>
                       <div className="mt-1.5 flex h-1.5 overflow-hidden rounded-full">
                         {card.swatch.map((tone, i) => (
                           <span key={`${card.id}-${i}`} className="flex-1" style={{ background: tone }} />
                         ))}
                       </div>
-                      <div className="mt-1.5 flex flex-wrap gap-1">
+                      <div className="mt-1.5 hidden flex-wrap gap-1 md:flex">
                         <Pill on={card.field}>{card.field ? 'Feld' : 'Feld aus'}</Pill>
                         <Pill on={card.form}>{card.form ? card.formName ?? 'Form' : 'Form aus'}</Pill>
                         <Pill>KI {card.intel}</Pill>
@@ -59,7 +61,7 @@ export function SceneOverview({
                         <Pill>{card.time}</Pill>
                         <Pill>{card.colorName}</Pill>
                       </div>
-                      <p className="mt-1 font-ui text-[11px] leading-snug text-white/40">{card.note}</p>
+                      <p className="mt-1 hidden line-clamp-2 font-ui text-[11px] leading-snug text-white/40 md:block">{card.note}</p>
                     </button>
                   )
                 })}

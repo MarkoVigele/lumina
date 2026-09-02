@@ -116,7 +116,7 @@ export const useLumina = create<Store>((set, get) => ({
   past: [],
   future: [],
   slots: loadSlots(),
-  panelOpen: true,
+  panelOpen: typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches,
   hints: true,
   recording: false,
   panelTab: 'presets',

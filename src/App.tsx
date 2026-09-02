@@ -7,8 +7,15 @@ import { useLumina } from './state/store'
 import { ControlPanel } from './ui/panel'
 import { Toolbar } from './ui/toolbar'
 import { Onboarding } from './ui/onboarding'
+import { PerfHud } from './ui/perf-hud'
+import { MobileSidebar } from './ui/swipe-sidebar'
 
 const sim = new Simulation()
+
+/** World clock. Independent of display FPS and of touch. */
+const SIM_DT = 1 / 60
+const MAX_SIM_STEPS = 8
+const MAX_FRAME_DT = 0.25
 
 function worldFromEvent(el: HTMLCanvasElement, ev: PointerEvent): { x: number; y: number } {
   const rect = el.getBoundingClientRect()
@@ -30,6 +37,7 @@ export default function App() {
   const paramsRef = useRef(useLumina.getState().params)
   const lastRef = useRef(0)
   const accRef = useRef(0)
+  const lastRenderRef = useRef(0)
   const lastClick = useRef(0)
   const dragEmitter = useRef<string | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
@@ -82,30 +90,44 @@ export default function App() {
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop)
       const p = paramsRef.current
-      const raw = Math.min(0.05, (now - lastRef.current) / 1000)
+      if (lastRef.current === 0) lastRef.current = now
+      const raw = Math.min(MAX_FRAME_DT, Math.max(0, (now - lastRef.current) / 1000))
       lastRef.current = now
-      const minDt = p.graphics.vsync ? 0 : 1 / Math.max(24, p.graphics.fpsLimit)
-      accRef.current += raw
-      if (!p.graphics.vsync && accRef.current < minDt) return
-      const dt = p.graphics.vsync ? raw : accRef.current
-      accRef.current = 0
 
       if (p.graphics.resolutionScale !== lastScale || p.graphics.quality !== lastQuality) {
         lastScale = p.graphics.resolutionScale
         lastQuality = p.graphics.quality
         renderer.resize(window.innerWidth, window.innerHeight, lastScale, lastQuality)
       }
-
-      const t0 = performance.now()
-      const list = [...pointers.current.values()]
       if (sim.width !== window.innerWidth || sim.height !== window.innerHeight) {
         sim.resize(window.innerWidth, window.innerHeight)
       }
-      sim.step(p, list, dt)
+
+      const list = [...pointers.current.values()]
+      if (!sim.paused) {
+        accRef.current += raw
+        let steps = 0
+        while (accRef.current >= SIM_DT && steps < MAX_SIM_STEPS) {
+          sim.step(p, list, SIM_DT)
+          accRef.current -= SIM_DT
+          steps++
+        }
+        if (steps >= MAX_SIM_STEPS) accRef.current = 0
+      }
+
       if (sim.shapes.cycledTo) {
         useLumina.getState().setSection('shape', { shape: sim.shapes.cycledTo }, { silent: true })
       }
+
+      const uncapped = p.graphics.vsync
+      const minRenderMs = uncapped ? 0 : 1000 / Math.max(1, p.graphics.fpsLimit)
+      if (!uncapped && lastRenderRef.current !== 0 && now - lastRenderRef.current < minRenderMs - 0.5) {
+        return
+      }
+
+      const t0 = performance.now()
       renderer.render(sim, p, list, useLumina.getState().selectedEmitterId)
+      lastRenderRef.current = now
       lastMs = performance.now() - t0
       frames++
       if (now - fpsT > 400) {
@@ -137,13 +159,19 @@ export default function App() {
     if (!canvas) return
 
     const down = (ev: PointerEvent) => {
-      const now = performance.now()
-      const dbl = now - lastClick.current < 280
-      lastClick.current = now
       const w = worldFromEvent(canvas, ev)
       const p = paramsRef.current
       const items = emittersOf(p)
       const hit = hitEmitter(items, w.x, w.y, sim.width, sim.height)
+      const mobile = window.matchMedia('(max-width: 767px)').matches
+      if (mobile && useLumina.getState().panelOpen && !hit) {
+        ev.preventDefault()
+        useLumina.getState().setPanelOpen(false)
+        return
+      }
+      const now = performance.now()
+      const dbl = now - lastClick.current < 280
+      lastClick.current = now
       const placing = useLumina.getState().placeMode && ev.button === 0
       if (hit && ev.button === 0) {
         ev.preventDefault()
@@ -324,59 +352,63 @@ export default function App() {
         className={`absolute inset-0 h-full w-full touch-none ${placeMode ? 'cursor-crosshair' : ''}`}
       />
 
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 md:p-5">
+      <div className="md:hidden">
+        <MobileSidebar open={panelOpen} onOpen={() => setPanelOpen(true)} onClose={() => setPanelOpen(false)}>
+          <ControlPanel compact />
+        </MobileSidebar>
+      </div>
+
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pt-[max(0.75rem,env(safe-area-inset-top))] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] md:p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="pointer-events-auto hidden rounded-full border border-white/8 bg-black/25 px-3 py-1 font-ui text-[11px] text-white/45 backdrop-blur-md sm:block">
+          <div className="flex min-w-0 items-start gap-2">
+            <PerfHud
+              fps={stats.fps}
+              particles={stats.particles}
+              frameMs={stats.frameMs}
+              memoryMb={stats.memoryMb}
+            />
+            <div className="md:hidden">
+              <Onboarding />
+            </div>
+          </div>
+          <div className="pointer-events-auto hidden rounded-full border border-white/8 bg-black/25 px-3 py-1 font-ui text-[11px] text-white/45 backdrop-blur-md md:block">
             {params.interaction.tool} · Pinsel {Math.round(params.interaction.brushSize)}
           </div>
-          <div className="ml-auto hidden font-ui text-[11px] text-white/30 md:block">
+          <div className="lumina-kbd-hint ml-auto hidden font-ui text-[11px] text-white/30 md:block">
             Doppelklick explodiert · Rechtsklick zweites Werkzeug
           </div>
         </div>
 
-        <div className="flex items-end justify-between gap-3">
+        <div className="mt-auto flex w-full items-end justify-between gap-3">
           <div className="max-md:hidden">
             <Onboarding />
           </div>
-          <div className="flex flex-1 flex-col items-end gap-3">
+          <div className="ml-auto flex w-full flex-col items-end gap-3 md:w-auto">
             {panelOpen && (
-              <div className="h-[min(78dvh,840px)]">
-                <ControlPanel
-                  fps={stats.fps}
-                  particles={stats.particles}
-                  frameMs={stats.frameMs}
-                  memoryMb={stats.memoryMb}
-                />
+              <div className="hidden h-[min(70dvh,760px)] md:block">
+                <ControlPanel />
               </div>
             )}
-            <Toolbar
-              paused={paused}
-              recording={recording}
-              onPause={() => setPaused((v) => !v)}
-              onReset={() => sim.reset(paramsRef.current)}
-              onClear={() => {
-                sim.clear()
-                rendererRef.current?.clearTrails()
-              }}
-              onRandom={() => {
-                randomize()
-                queueMicrotask(() => sim.reset(useLumina.getState().params))
-              }}
-              onEvolve={() => sim.evolve(paramsRef.current)}
-              onRecord={toggleRecord}
-            />
+            <div className="w-full max-md:max-w-none md:w-auto pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0">
+              <Toolbar
+                paused={paused}
+                recording={recording}
+                onPause={() => setPaused((v) => !v)}
+                onReset={() => sim.reset(paramsRef.current)}
+                onClear={() => {
+                  sim.clear()
+                  rendererRef.current?.clearTrails()
+                }}
+                onRandom={() => {
+                  randomize()
+                  queueMicrotask(() => sim.reset(useLumina.getState().params))
+                }}
+                onEvolve={() => sim.evolve(paramsRef.current)}
+                onRecord={toggleRecord}
+              />
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="pointer-events-none absolute bottom-3 left-3 md:hidden">
-        <button
-          type="button"
-          className="pointer-events-auto rounded-full border border-white/10 bg-black/40 px-3 py-1 font-ui text-[11px] text-white/70"
-          onClick={() => useLumina.getState().setHints(false)}
-        >
-          Tipp: 1–7 Werkzeug · H Panel
-        </button>
       </div>
     </div>
   )

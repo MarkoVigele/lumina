@@ -10,7 +10,7 @@ export function Group({
   return (
     <div className="overflow-hidden rounded-[16px] bg-white/[0.05] ring-1 ring-white/8">
       {title && (
-        <p className="px-3.5 pt-2.5 pb-0.5 font-ui text-[11px] font-medium tracking-wide text-white/38">{title}</p>
+        <p className="truncate px-3.5 pt-2.5 pb-0.5 font-ui text-[11px] font-medium tracking-wide text-white/38">{title}</p>
       )}
       <div className="divide-y divide-white/6">{children}</div>
     </div>
@@ -18,7 +18,7 @@ export function Group({
 }
 
 export function Row({ children }: { children: ReactNode }) {
-  return <div className="px-3.5 py-2">{children}</div>
+  return <div className="min-w-0 px-3.5 py-2">{children}</div>
 }
 
 /** Fine-tuning drawer. Lives inside a Group, after the few primary rows. */
@@ -161,11 +161,11 @@ export function Kbd({ children }: { children: string }) {
   )
 }
 
-/** Tiny key on a `group` icon — only visible while hovered or focused. */
+/** Tiny key on a `group` icon — only visible while hovered or focused. Hidden on touch. */
 export function HoverKbd({ keys }: { keys?: string }) {
   if (!keys) return null
   return (
-    <span className="pointer-events-none absolute -right-0.5 -top-0.5 z-10 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+    <span className="lumina-kbd-hint pointer-events-none absolute -right-0.5 -top-0.5 z-10 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
       <Kbd>{keys}</Kbd>
     </span>
   )
@@ -195,7 +195,11 @@ export function Toggle({
       >
         <span className={`inline-flex items-center gap-1.5 font-ui text-[13px] ${disabled ? 'text-white/42' : 'text-white/78'}`}>
           {label}
-          {shortcut && <Kbd>{shortcut}</Kbd>}
+          {shortcut && (
+            <span className="lumina-kbd-hint">
+              <Kbd>{shortcut}</Kbd>
+            </span>
+          )}
         </span>
         <button
           type="button"

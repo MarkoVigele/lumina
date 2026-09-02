@@ -14,7 +14,6 @@ export const HINT = {
   kaleido: 'Symmetrie auf 2 oder höher stellen',
   trails: 'Spuren einschalten',
   post: 'Nachbearbeitung einschalten',
-  vsync: 'VSync ist an — ausschalten für festes Limit',
 } as const
 
 /** Form cancels gravity, wind and most turbulence. */
@@ -60,6 +59,10 @@ export function chromaHint(graphics: GraphicsParams): string | undefined {
   return graphics.postEffects ? undefined : HINT.post
 }
 
-export function fpsLimitHint(graphics: GraphicsParams): string | undefined {
-  return graphics.vsync ? HINT.vsync : undefined
+/** Display-chip id. Simulation timestep never reads this. */
+export function displayFpsMode(graphics: GraphicsParams): '30' | '60' | '120' | 'auto' {
+  if (graphics.vsync) return 'auto'
+  if (graphics.fpsLimit === 30) return '30'
+  if (graphics.fpsLimit === 120) return '120'
+  return '60'
 }
