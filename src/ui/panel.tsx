@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   SlidersHorizontal,
   Palette,
@@ -13,6 +13,7 @@ import {
   Radio,
   Undo2,
   Redo2,
+  MoreHorizontal,
 } from 'lucide-react'
 import { COLOR_PRESETS, EXPLOSION_PRESETS, MIX_PRESETS, SHAPE_PRESETS } from '../state/presets'
 import { ColorPaletteGrid } from './color-palettes'
@@ -131,6 +132,11 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
+const PRIMARY_IDS = ['presets', 'shape', 'physics', 'swarm'] as const
+const MORE_IDS = ['emitters', 'explosion', 'color', 'creative', 'interact', 'graphics', 'saves'] as const
+const PRIMARY_TABS = TABS.filter((item) => (PRIMARY_IDS as readonly string[]).includes(item.id))
+const MORE_TABS = TABS.filter((item) => (MORE_IDS as readonly string[]).includes(item.id))
+
 const TRAIL_MIN = 0.12
 const TRAIL_MAX = 0.85
 const trailLength = (fade: number) => TRAIL_MAX + TRAIL_MIN - fade
@@ -152,6 +158,9 @@ export function ControlPanel({
   const tab = (TABS.some((item) => item.id === store.panelTab) ? store.panelTab : 'presets') as TabId
   const setTab = (id: TabId) => store.setPanelTab(id)
   const [saveName, setSaveName] = useState('Meine Szene')
+  const lastMore = useRef<TabId>('emitters')
+  const onMore = (MORE_IDS as readonly string[]).includes(tab)
+  if (onMore) lastMore.current = tab
   const d = DEFAULT_PARAMS
   const form = params.shape ?? d.shape
   const exp = params.explosion ?? d.explosion
@@ -188,6 +197,14 @@ export function ControlPanel({
     [store.mixPresetId],
   )
 
+  const liveOf = (id: string) => {
+    if (id === 'shape') return form.enabled ? LIVE_FORM : undefined
+    if (id === 'explosion') return exp.enabled ? LIVE_EXPLOSION : undefined
+    if (id === 'swarm') return LIVE_KI[params.swarm.intelligence]
+    if (id === 'emitters') return params.emitters?.items.some((em) => em.enabled) ? '#f3b27a' : undefined
+    return undefined
+  }
+
   const resetTab = () => {
     if (tab === 'presets') store.resetAll()
     else if (tab === 'physics') store.resetSection('physics')
@@ -202,28 +219,80 @@ export function ControlPanel({
   }
 
   return (
-    <aside className="pointer-events-auto flex h-full w-[min(100vw-24px,460px)] overflow-hidden rounded-[22px] border border-white/10 bg-[#16181e]/82 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-      <nav className="flex w-[92px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/8 bg-black/20 px-1.5 py-2">
+    <aside className="pointer-events-auto flex h-full w-full max-md:max-h-[48dvh] max-md:flex-col overflow-hidden rounded-t-[22px] border border-white/10 bg-[#16181e]/82 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl md:w-[min(100vw-24px,460px)] md:rounded-[22px]">
+      <nav className="flex shrink-0 items-stretch justify-around gap-0.5 border-b border-white/8 bg-black/20 px-1 py-1 md:hidden">
+        {PRIMARY_TABS.map((item) => {
+          const Icon = item.icon
+          const active = tab === item.id
+          const live = liveOf(item.id)
+          return (
+            <button
+              key={item.id}
+              type="button"
+              title={item.name}
+              aria-label={item.name}
+              onClick={() => setTab(item.id)}
+              className={`relative flex h-11 min-w-11 flex-1 flex-col items-center justify-center rounded-[12px] ${
+                active ? 'bg-white/12 text-white' : live ? 'text-white/72' : 'text-white/42'
+              }`}
+            >
+              <Icon size={18} strokeWidth={1.75} style={live && !active ? { color: live } : undefined} />
+              {live && (
+                <span
+                  className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full"
+                  style={{ background: live, boxShadow: `0 0 7px ${live}` }}
+                  aria-hidden
+                />
+              )}
+            </button>
+          )
+        })}
+        <button
+          type="button"
+          title="Mehr"
+          aria-label="Mehr"
+          onClick={() => setTab(lastMore.current)}
+          className={`relative flex h-11 min-w-11 flex-1 flex-col items-center justify-center rounded-[12px] ${
+            onMore ? 'bg-white/12 text-white' : 'text-white/42'
+          }`}
+        >
+          <MoreHorizontal size={18} strokeWidth={1.75} />
+        </button>
+      </nav>
+      {onMore && (
+        <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-white/8 px-2 py-1.5 md:hidden">
+          {MORE_TABS.map((item) => {
+            const active = tab === item.id
+            const live = liveOf(item.id)
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setTab(item.id)}
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 font-ui text-[12px] ${
+                  active ? 'bg-white/90 text-[#14161c]' : 'bg-white/8 text-white/62'
+                }`}
+              >
+                {item.name}
+                {live && (
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: live, boxShadow: active ? `0 0 6px ${live}` : undefined }}
+                    aria-hidden
+                  />
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      <nav className="hidden w-[92px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/8 bg-black/20 px-1.5 py-2 md:flex">
         {TABS.map((item) => {
           const Icon = item.icon
           const active = tab === item.id
           const shortcut = 'shortcut' in item ? item.shortcut : undefined
-          const live =
-            item.id === 'shape'
-              ? form.enabled
-                ? LIVE_FORM
-                : undefined
-              : item.id === 'explosion'
-                ? exp.enabled
-                  ? LIVE_EXPLOSION
-                  : undefined
-                : item.id === 'swarm'
-                  ? LIVE_KI[params.swarm.intelligence]
-                  : item.id === 'emitters'
-                    ? params.emitters?.items.some((em) => em.enabled)
-                      ? '#f3b27a'
-                      : undefined
-                    : undefined
+          const live = liveOf(item.id)
           const title =
             'shortcut' in item && item.shortcut
               ? `${item.name} · ${item.shortcutHint} (${item.shortcut})`
@@ -259,13 +328,13 @@ export function ControlPanel({
         })}
       </nav>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-start justify-between gap-3 px-4 pt-3.5 pb-2">
+      <div className="flex min-w-0 min-h-0 flex-1 flex-col">
+        <header className="flex items-start justify-between gap-3 px-4 pt-2.5 pb-2 md:pt-3.5">
           <div>
-            <p className="font-display text-[22px] leading-none tracking-tight text-white/94">Lumina</p>
+            <p className="font-display text-[18px] leading-none tracking-tight text-white/94 md:text-[22px]">Lumina</p>
             <p className="mt-1 font-ui text-[11px] text-white/38">{TABS.find((t) => t.id === tab)?.name}</p>
             {params.graphics.showPerf !== false && (
-              <div className="mt-2 flex flex-wrap gap-2.5 font-ui text-[10px] tabular-nums text-white/32">
+              <div className="mt-2 hidden flex-wrap gap-2.5 font-ui text-[10px] tabular-nums text-white/32 md:flex">
                 <span>{fps.toFixed(0)} fps</span>
                 <span>{particles}</span>
                 <span>{frameMs.toFixed(1)} ms</span>
@@ -273,7 +342,7 @@ export function ControlPanel({
               </div>
             )}
           </div>
-          <div className="mt-0.5 flex flex-wrap justify-end gap-1.5">
+          <div className="mt-0.5 hidden flex-wrap justify-end gap-1.5 md:flex">
             <button
               type="button"
               className="lumina-btn"
@@ -300,6 +369,11 @@ export function ControlPanel({
               </button>
             )}
           </div>
+          {tab !== 'saves' && (
+            <button type="button" className="lumina-btn md:hidden" onClick={resetTab}>
+              Standard
+            </button>
+          )}
         </header>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 pb-4">

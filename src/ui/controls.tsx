@@ -161,11 +161,11 @@ export function Kbd({ children }: { children: string }) {
   )
 }
 
-/** Tiny key on a `group` icon — only visible while hovered or focused. */
+/** Tiny key on a `group` icon — only visible while hovered or focused. Hidden on touch. */
 export function HoverKbd({ keys }: { keys?: string }) {
   if (!keys) return null
   return (
-    <span className="pointer-events-none absolute -right-0.5 -top-0.5 z-10 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+    <span className="lumina-kbd-hint pointer-events-none absolute -right-0.5 -top-0.5 z-10 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
       <Kbd>{keys}</Kbd>
     </span>
   )
@@ -195,7 +195,11 @@ export function Toggle({
       >
         <span className={`inline-flex items-center gap-1.5 font-ui text-[13px] ${disabled ? 'text-white/42' : 'text-white/78'}`}>
           {label}
-          {shortcut && <Kbd>{shortcut}</Kbd>}
+          {shortcut && (
+            <span className="lumina-kbd-hint">
+              <Kbd>{shortcut}</Kbd>
+            </span>
+          )}
         </span>
         <button
           type="button"

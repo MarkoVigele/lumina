@@ -23,7 +23,7 @@ export function SceneOverview({
 }) {
   return (
     <>
-      <p className="px-1 font-ui text-[12px] text-white/40">
+      <p className="hidden px-1 font-ui text-[12px] text-white/40 md:block">
         Vier Arten. Jede Szene bringt Takt und Farbe mit.
       </p>
       {SCENE_GROUPS.map((group) => {
@@ -32,8 +32,8 @@ export function SceneOverview({
         return (
           <Group key={group.id} title={group.title}>
             <Row>
-              <p className="mb-2 font-ui text-[11px] leading-snug text-white/34">{group.blurb}</p>
-              <div className="grid grid-cols-1 gap-2">
+              <p className="mb-2 hidden font-ui text-[11px] leading-snug text-white/34 md:block">{group.blurb}</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-1 md:overflow-visible md:pb-0">
                 {cards.map((card) => {
                   const active = activeId === card.id
                   return (
@@ -41,7 +41,7 @@ export function SceneOverview({
                       key={card.id}
                       type="button"
                       onClick={() => onPick(card.id)}
-                      className={`rounded-[12px] px-3 py-2 text-left ring-1 ${
+                      className={`min-w-[9.25rem] shrink-0 rounded-[12px] px-3 py-2 text-left ring-1 md:min-w-0 ${
                         active ? 'bg-white/14 ring-white/22' : 'bg-black/20 ring-white/6 hover:bg-white/6'
                       }`}
                     >
@@ -51,7 +51,7 @@ export function SceneOverview({
                           <span key={`${card.id}-${i}`} className="flex-1" style={{ background: tone }} />
                         ))}
                       </div>
-                      <div className="mt-1.5 flex flex-wrap gap-1">
+                      <div className="mt-1.5 hidden flex-wrap gap-1 md:flex">
                         <Pill on={card.field}>{card.field ? 'Feld' : 'Feld aus'}</Pill>
                         <Pill on={card.form}>{card.form ? card.formName ?? 'Form' : 'Form aus'}</Pill>
                         <Pill>KI {card.intel}</Pill>
@@ -59,7 +59,7 @@ export function SceneOverview({
                         <Pill>{card.time}</Pill>
                         <Pill>{card.colorName}</Pill>
                       </div>
-                      <p className="mt-1 font-ui text-[11px] leading-snug text-white/40">{card.note}</p>
+                      <p className="mt-1 hidden font-ui text-[11px] leading-snug text-white/40 md:block">{card.note}</p>
                     </button>
                   )
                 })}

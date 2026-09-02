@@ -324,23 +324,26 @@ export default function App() {
         className={`absolute inset-0 h-full w-full touch-none ${placeMode ? 'cursor-crosshair' : ''}`}
       />
 
-      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 md:p-5">
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pt-[max(0.75rem,env(safe-area-inset-top))] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] md:p-5">
         <div className="flex items-start justify-between gap-3">
+          <div className="md:hidden">
+            <Onboarding />
+          </div>
           <div className="pointer-events-auto hidden rounded-full border border-white/8 bg-black/25 px-3 py-1 font-ui text-[11px] text-white/45 backdrop-blur-md sm:block">
             {params.interaction.tool} · Pinsel {Math.round(params.interaction.brushSize)}
           </div>
-          <div className="ml-auto hidden font-ui text-[11px] text-white/30 md:block">
+          <div className="lumina-kbd-hint ml-auto hidden font-ui text-[11px] text-white/30 md:block">
             Doppelklick explodiert · Rechtsklick zweites Werkzeug
           </div>
         </div>
 
-        <div className="flex items-end justify-between gap-3">
+        <div className="flex items-end justify-between gap-3 max-md:flex-col max-md:items-stretch">
           <div className="max-md:hidden">
             <Onboarding />
           </div>
-          <div className="flex flex-1 flex-col items-end gap-3">
+          <div className="flex flex-1 flex-col items-end gap-2 max-md:items-stretch max-md:gap-0 md:gap-3">
             {panelOpen && (
-              <div className="h-[min(78dvh,840px)]">
+              <div className="h-[min(48dvh,420px)] w-full md:h-[min(70dvh,760px)] md:w-auto">
                 <ControlPanel
                   fps={stats.fps}
                   particles={stats.particles}
@@ -349,34 +352,26 @@ export default function App() {
                 />
               </div>
             )}
-            <Toolbar
-              paused={paused}
-              recording={recording}
-              onPause={() => setPaused((v) => !v)}
-              onReset={() => sim.reset(paramsRef.current)}
-              onClear={() => {
-                sim.clear()
-                rendererRef.current?.clearTrails()
-              }}
-              onRandom={() => {
-                randomize()
-                queueMicrotask(() => sim.reset(useLumina.getState().params))
-              }}
-              onEvolve={() => sim.evolve(paramsRef.current)}
-              onRecord={toggleRecord}
-            />
+            <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0">
+              <Toolbar
+                paused={paused}
+                recording={recording}
+                onPause={() => setPaused((v) => !v)}
+                onReset={() => sim.reset(paramsRef.current)}
+                onClear={() => {
+                  sim.clear()
+                  rendererRef.current?.clearTrails()
+                }}
+                onRandom={() => {
+                  randomize()
+                  queueMicrotask(() => sim.reset(useLumina.getState().params))
+                }}
+                onEvolve={() => sim.evolve(paramsRef.current)}
+                onRecord={toggleRecord}
+              />
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="pointer-events-none absolute bottom-3 left-3 md:hidden">
-        <button
-          type="button"
-          className="pointer-events-auto rounded-full border border-white/10 bg-black/40 px-3 py-1 font-ui text-[11px] text-white/70"
-          onClick={() => useLumina.getState().setHints(false)}
-        >
-          Tipp: 1–7 Werkzeug · H Panel
-        </button>
       </div>
     </div>
   )

@@ -61,28 +61,30 @@ export function Toolbar({
   const redo = useLumina((s) => s.redo)
 
   return (
-    <div className="pointer-events-auto flex max-w-full flex-wrap items-center gap-1.5 rounded-2xl border border-white/10 bg-[#0c0e13]/72 px-2 py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+    <div
+      className={`lumina-toolbar pointer-events-auto flex max-w-full flex-nowrap items-center gap-0.5 overflow-x-auto rounded-2xl border border-white/10 bg-[#0c0e13]/72 px-1.5 py-1 shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl max-md:w-full max-md:justify-start md:gap-1.5 md:px-2 md:py-1.5 ${
+        panelOpen ? 'max-md:rounded-t-none max-md:border-t-0' : ''
+      }`}
+    >
       <button
         type="button"
         title="Rückgängig (Strg+Z)"
-        className="lumina-btn h-9 px-3"
+        className="lumina-icon"
         disabled={!canUndo}
         onClick={undo}
       >
-        <Undo2 size={15} />
-        Rückgängig
+        <Undo2 size={16} />
       </button>
       <button
         type="button"
         title="Wiederholen (Strg+Y)"
-        className="lumina-btn h-9 px-3"
+        className="lumina-icon"
         disabled={!canRedo}
         onClick={redo}
       >
-        <Redo2 size={15} />
-        Wiederholen
+        <Redo2 size={16} />
       </button>
-      <span className="mx-1 h-6 w-px bg-white/10" />
+      <span className="mx-0.5 h-6 w-px shrink-0 bg-white/10 md:mx-1" />
       {TOOLS.map((t) => {
         const Icon = t.icon
         const active = tool === t.id
@@ -92,7 +94,7 @@ export function Toolbar({
             type="button"
             title={`${t.name} (${t.hint})`}
             onClick={() => setSection('interaction', { tool: t.id })}
-            className={`group relative flex h-9 w-9 items-center justify-center rounded-xl ${
+            className={`group relative lumina-icon ${
               active ? 'bg-white/16 text-white' : 'text-white/55 hover:bg-white/8 hover:text-white/80'
             }`}
           >
@@ -101,7 +103,7 @@ export function Toolbar({
           </button>
         )
       })}
-      <span className="mx-1 h-6 w-px bg-white/10" />
+      <span className="mx-0.5 h-6 w-px shrink-0 bg-white/10 md:mx-1" />
       <button type="button" title="Pause (Leertaste)" className="group lumina-icon" onClick={onPause}>
         {paused ? <Play size={16} /> : <Pause size={16} />}
         <HoverKbd keys="␣" />
