@@ -7,6 +7,7 @@ import { useLumina } from './state/store'
 import { ControlPanel } from './ui/panel'
 import { Toolbar } from './ui/toolbar'
 import { Onboarding } from './ui/onboarding'
+import { PerfHud } from './ui/perf-hud'
 import { SwipeSidebar } from './ui/swipe-sidebar'
 import { SlidersHorizontal } from 'lucide-react'
 
@@ -336,13 +337,7 @@ export default function App() {
         <div className="lumina-sidebar pointer-events-none absolute top-0 right-0 z-20 h-[calc(100dvh-4.5rem)] w-[min(240px,62%)] pt-[max(0.35rem,env(safe-area-inset-top))] md:hidden">
           <div className="pointer-events-auto h-full">
             <SwipeSidebar onClose={() => setPanelOpen(false)}>
-              <ControlPanel
-                compact
-                fps={stats.fps}
-                particles={stats.particles}
-                frameMs={stats.frameMs}
-                memoryMb={stats.memoryMb}
-              />
+              <ControlPanel compact />
             </SwipeSidebar>
           </div>
         </div>
@@ -362,10 +357,18 @@ export default function App() {
 
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pt-[max(0.75rem,env(safe-area-inset-top))] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] md:p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="md:hidden">
-            <Onboarding />
+          <div className="flex min-w-0 items-start gap-2">
+            <PerfHud
+              fps={stats.fps}
+              particles={stats.particles}
+              frameMs={stats.frameMs}
+              memoryMb={stats.memoryMb}
+            />
+            <div className="md:hidden">
+              <Onboarding />
+            </div>
           </div>
-          <div className="pointer-events-auto hidden rounded-full border border-white/8 bg-black/25 px-3 py-1 font-ui text-[11px] text-white/45 backdrop-blur-md sm:block">
+          <div className="pointer-events-auto hidden rounded-full border border-white/8 bg-black/25 px-3 py-1 font-ui text-[11px] text-white/45 backdrop-blur-md md:block">
             {params.interaction.tool} · Pinsel {Math.round(params.interaction.brushSize)}
           </div>
           <div className="lumina-kbd-hint ml-auto hidden font-ui text-[11px] text-white/30 md:block">
@@ -380,12 +383,7 @@ export default function App() {
           <div className="ml-auto flex w-full flex-col items-end gap-3 md:w-auto">
             {panelOpen && (
               <div className="hidden h-[min(70dvh,760px)] md:block">
-                <ControlPanel
-                  fps={stats.fps}
-                  particles={stats.particles}
-                  frameMs={stats.frameMs}
-                  memoryMb={stats.memoryMb}
-                />
+                <ControlPanel />
               </div>
             )}
             <div className="w-full max-md:max-w-none md:w-auto pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0">

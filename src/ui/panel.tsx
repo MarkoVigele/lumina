@@ -151,16 +151,8 @@ const trailLength = (fade: number) => TRAIL_MAX + TRAIL_MIN - fade
 const trailFade = (length: number) => TRAIL_MAX + TRAIL_MIN - length
 
 export function ControlPanel({
-  fps,
-  particles,
-  frameMs,
-  memoryMb,
   compact = false,
 }: {
-  fps: number
-  particles: number
-  frameMs: number
-  memoryMb: number | null
   compact?: boolean
 }) {
   const store = useLumina()
@@ -288,14 +280,6 @@ export function ControlPanel({
           <div>
             <p className="font-display text-[18px] leading-none tracking-tight text-white/94 md:text-[22px]">Lumina</p>
             <p className="mt-1 font-ui text-[11px] text-white/38">{TABS.find((t) => t.id === tab)?.name}</p>
-            {params.graphics.showPerf !== false && (
-              <div className="mt-2 hidden flex-wrap gap-2.5 font-ui text-[10px] tabular-nums text-white/32 md:flex">
-                <span>{fps.toFixed(0)} fps</span>
-                <span>{particles}</span>
-                <span>{frameMs.toFixed(1)} ms</span>
-                {memoryMb != null && <span>{memoryMb.toFixed(0)} MB</span>}
-              </div>
-            )}
           </div>
           <div className={`mt-0.5 flex flex-wrap justify-end gap-1.5 ${compact ? '' : ''}`}>
             {compact && (
