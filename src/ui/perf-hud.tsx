@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { useLumina } from '../state/store'
 
 export function PerfHud({
@@ -19,28 +20,26 @@ export function PerfHud({
   return (
     <button
       type="button"
-      aria-expanded={open}
-      title={open ? 'Einklappen' : 'Leistung'}
+      className="pointer-events-auto flex min-h-11 min-w-11 flex-col items-start justify-center rounded-md px-1.5 py-1 text-left md:min-h-7"
       onClick={() => setOpen((v) => !v)}
-      className="pointer-events-auto max-w-full rounded-full px-1.5 py-0.5 font-ui text-[10px] tabular-nums leading-none text-white/32"
+      aria-expanded={open}
+      aria-label={open ? 'Leistung ausblenden' : 'Leistung einblenden'}
     >
+      <span className="inline-flex items-center gap-0.5 font-mono text-[10px] tabular-nums text-white/50">
+        {fps.toFixed(0)} fps
+        <ChevronDown
+          className={`size-2.5 text-white/35 transition-transform ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
+      </span>
       {open ? (
-        <span className="whitespace-nowrap">
-          {fps.toFixed(0)} fps
-          <span className="text-white/18"> · </span>
-          {particles}
-          <span className="text-white/18"> · </span>
-          {frameMs.toFixed(1)} ms
-          {memoryMb != null && (
-            <>
-              <span className="text-white/18"> · </span>
-              {memoryMb.toFixed(0)} MB
-            </>
-          )}
+        <span className="mt-1 grid gap-0.5 font-mono text-[10px] leading-snug text-white/48">
+          <span>
+            {particles} · {frameMs.toFixed(1)} ms
+            {memoryMb != null ? ` · ${memoryMb.toFixed(0)} MB` : ''}
+          </span>
         </span>
-      ) : (
-        <span>{fps.toFixed(0)}</span>
-      )}
+      ) : null}
     </button>
   )
 }
