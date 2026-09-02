@@ -28,7 +28,9 @@ export function PerfHud({
       <span className="inline-flex items-center gap-0.5 font-mono text-[10px] tabular-nums text-white/50">
         {fps.toFixed(0)} fps
         <ChevronDown
-          className={`size-2.5 text-white/35 transition-transform ${open ? 'rotate-180' : ''}`}
+          size={10}
+          strokeWidth={2.25}
+          className={`shrink-0 text-white/35 transition-transform ${open ? 'rotate-180' : ''}`}
           aria-hidden
         />
       </span>
