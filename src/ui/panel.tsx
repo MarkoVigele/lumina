@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   SlidersHorizontal,
   Palette,
@@ -13,7 +13,7 @@ import {
   Radio,
   Undo2,
   Redo2,
-  MoreHorizontal,
+  X,
 } from 'lucide-react'
 import { COLOR_PRESETS, EXPLOSION_PRESETS, MIX_PRESETS, SHAPE_PRESETS } from '../state/presets'
 import { ColorPaletteGrid } from './color-palettes'
@@ -132,10 +132,18 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
-const PRIMARY_IDS = ['presets', 'shape', 'physics', 'swarm'] as const
-const MORE_IDS = ['emitters', 'explosion', 'color', 'creative', 'interact', 'graphics', 'saves'] as const
-const PRIMARY_TABS = TABS.filter((item) => (PRIMARY_IDS as readonly string[]).includes(item.id))
-const MORE_TABS = TABS.filter((item) => (MORE_IDS as readonly string[]).includes(item.id))
+const MOBILE_TAB_IDS: TabId[] = [
+  'shape',
+  'physics',
+  'swarm',
+  'emitters',
+  'explosion',
+  'color',
+  'creative',
+  'graphics',
+  'saves',
+  'presets',
+]
 
 const TRAIL_MIN = 0.12
 const TRAIL_MAX = 0.85
@@ -147,20 +155,22 @@ export function ControlPanel({
   particles,
   frameMs,
   memoryMb,
+  compact = false,
 }: {
   fps: number
   particles: number
   frameMs: number
   memoryMb: number | null
+  compact?: boolean
 }) {
   const store = useLumina()
   const { params } = store
   const tab = (TABS.some((item) => item.id === store.panelTab) ? store.panelTab : 'presets') as TabId
   const setTab = (id: TabId) => store.setPanelTab(id)
   const [saveName, setSaveName] = useState('Meine Szene')
-  const lastMore = useRef<TabId>('emitters')
-  const onMore = (MORE_IDS as readonly string[]).includes(tab)
-  if (onMore) lastMore.current = tab
+  const rail = compact
+    ? MOBILE_TAB_IDS.map((id) => TABS.find((item) => item.id === id)!).filter(Boolean)
+    : TABS
   const d = DEFAULT_PARAMS
   const form = params.shape ?? d.shape
   const exp = params.explosion ?? d.explosion
@@ -219,82 +229,25 @@ export function ControlPanel({
   }
 
   return (
-    <aside className="pointer-events-auto flex h-full w-full max-md:max-h-[48dvh] max-md:flex-col overflow-hidden rounded-t-[22px] border border-white/10 bg-[#16181e]/82 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl md:w-[min(100vw-24px,460px)] md:rounded-[22px]">
-      <nav className="flex shrink-0 items-stretch justify-around gap-0.5 border-b border-white/8 bg-black/20 px-1 py-1 md:hidden">
-        {PRIMARY_TABS.map((item) => {
+    <aside
+      className={`pointer-events-auto flex h-full overflow-hidden border border-white/10 bg-[#16181e]/82 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl ${
+        compact
+          ? 'w-full rounded-l-[22px] rounded-r-none border-r-0'
+          : 'w-[min(100vw-24px,460px)] rounded-[22px]'
+      }`}
+    >
+      <nav
+        className={`flex shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/8 bg-black/20 ${
+          compact ? 'w-[68px] px-1 py-1.5' : 'w-[92px] px-1.5 py-2'
+        }`}
+      >
+        {rail.map((item) => {
           const Icon = item.icon
           const active = tab === item.id
-          const live = liveOf(item.id)
-          return (
-            <button
-              key={item.id}
-              type="button"
-              title={item.name}
-              aria-label={item.name}
-              onClick={() => setTab(item.id)}
-              className={`relative flex h-11 min-w-11 flex-1 flex-col items-center justify-center rounded-[12px] ${
-                active ? 'bg-white/12 text-white' : live ? 'text-white/72' : 'text-white/42'
-              }`}
-            >
-              <Icon size={18} strokeWidth={1.75} style={live && !active ? { color: live } : undefined} />
-              {live && (
-                <span
-                  className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full"
-                  style={{ background: live, boxShadow: `0 0 7px ${live}` }}
-                  aria-hidden
-                />
-              )}
-            </button>
-          )
-        })}
-        <button
-          type="button"
-          title="Mehr"
-          aria-label="Mehr"
-          onClick={() => setTab(lastMore.current)}
-          className={`relative flex h-11 min-w-11 flex-1 flex-col items-center justify-center rounded-[12px] ${
-            onMore ? 'bg-white/12 text-white' : 'text-white/42'
-          }`}
-        >
-          <MoreHorizontal size={18} strokeWidth={1.75} />
-        </button>
-      </nav>
-      {onMore && (
-        <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-white/8 px-2 py-1.5 md:hidden">
-          {MORE_TABS.map((item) => {
-            const active = tab === item.id
-            const live = liveOf(item.id)
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setTab(item.id)}
-                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 font-ui text-[12px] ${
-                  active ? 'bg-white/90 text-[#14161c]' : 'bg-white/8 text-white/62'
-                }`}
-              >
-                {item.name}
-                {live && (
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ background: live, boxShadow: active ? `0 0 6px ${live}` : undefined }}
-                    aria-hidden
-                  />
-                )}
-              </button>
-            )
-          })}
-        </div>
-      )}
-
-      <nav className="hidden w-[92px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-white/8 bg-black/20 px-1.5 py-2 md:flex">
-        {TABS.map((item) => {
-          const Icon = item.icon
-          const active = tab === item.id
-          const shortcut = 'shortcut' in item ? item.shortcut : undefined
+          const shortcut = compact ? undefined : 'shortcut' in item ? item.shortcut : undefined
           const live = liveOf(item.id)
           const title =
-            'shortcut' in item && item.shortcut
+            !compact && 'shortcut' in item && item.shortcut
               ? `${item.name} · ${item.shortcutHint} (${item.shortcut})`
               : item.name
           return (
@@ -303,7 +256,9 @@ export function ControlPanel({
               type="button"
               title={title}
               onClick={() => setTab(item.id)}
-              className={`group relative flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[14px] px-1 ${
+              className={`group relative flex flex-col items-center justify-center gap-1 rounded-[14px] px-1 ${
+                compact ? 'min-h-[44px]' : 'min-h-[52px]'
+              } ${
                 active
                   ? 'bg-white/12 text-white'
                   : live
@@ -328,8 +283,8 @@ export function ControlPanel({
         })}
       </nav>
 
-      <div className="flex min-w-0 min-h-0 flex-1 flex-col">
-        <header className="flex items-start justify-between gap-3 px-4 pt-2.5 pb-2 md:pt-3.5">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex items-start justify-between gap-3 px-3 pt-2.5 pb-2 md:px-4 md:pt-3.5">
           <div>
             <p className="font-display text-[18px] leading-none tracking-tight text-white/94 md:text-[22px]">Lumina</p>
             <p className="mt-1 font-ui text-[11px] text-white/38">{TABS.find((t) => t.id === tab)?.name}</p>
@@ -342,38 +297,48 @@ export function ControlPanel({
               </div>
             )}
           </div>
-          <div className="mt-0.5 hidden flex-wrap justify-end gap-1.5 md:flex">
-            <button
-              type="button"
-              className="lumina-btn"
-              title="Rückgängig (Strg+Z)"
-              disabled={store.past.length === 0}
-              onClick={() => store.undo()}
-            >
-              <Undo2 size={13} />
-              Rückgängig
-            </button>
-            <button
-              type="button"
-              className="lumina-btn"
-              title="Wiederholen (Strg+Y)"
-              disabled={store.future.length === 0}
-              onClick={() => store.redo()}
-            >
-              <Redo2 size={13} />
-              Wiederholen
-            </button>
+          <div className={`mt-0.5 flex flex-wrap justify-end gap-1.5 ${compact ? '' : ''}`}>
+            {compact && (
+              <button
+                type="button"
+                className="lumina-icon"
+                title="Schließen"
+                aria-label="Schließen"
+                onClick={() => store.setPanelOpen(false)}
+              >
+                <X size={16} />
+              </button>
+            )}
+            {!compact && (
+              <>
+                <button
+                  type="button"
+                  className="lumina-btn"
+                  title="Rückgängig (Strg+Z)"
+                  disabled={store.past.length === 0}
+                  onClick={() => store.undo()}
+                >
+                  <Undo2 size={13} />
+                  Rückgängig
+                </button>
+                <button
+                  type="button"
+                  className="lumina-btn"
+                  title="Wiederholen (Strg+Y)"
+                  disabled={store.future.length === 0}
+                  onClick={() => store.redo()}
+                >
+                  <Redo2 size={13} />
+                  Wiederholen
+                </button>
+              </>
+            )}
             {tab !== 'saves' && (
               <button type="button" className="lumina-btn" onClick={resetTab}>
                 Standard
               </button>
             )}
           </div>
-          {tab !== 'saves' && (
-            <button type="button" className="lumina-btn md:hidden" onClick={resetTab}>
-              Standard
-            </button>
-          )}
         </header>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 pb-4">

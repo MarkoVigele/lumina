@@ -7,6 +7,8 @@ import { useLumina } from './state/store'
 import { ControlPanel } from './ui/panel'
 import { Toolbar } from './ui/toolbar'
 import { Onboarding } from './ui/onboarding'
+import { SwipeSidebar } from './ui/swipe-sidebar'
+import { SlidersHorizontal } from 'lucide-react'
 
 const sim = new Simulation()
 
@@ -137,13 +139,19 @@ export default function App() {
     if (!canvas) return
 
     const down = (ev: PointerEvent) => {
-      const now = performance.now()
-      const dbl = now - lastClick.current < 280
-      lastClick.current = now
       const w = worldFromEvent(canvas, ev)
       const p = paramsRef.current
       const items = emittersOf(p)
       const hit = hitEmitter(items, w.x, w.y, sim.width, sim.height)
+      const mobile = window.matchMedia('(max-width: 767px)').matches
+      if (mobile && useLumina.getState().panelOpen && !hit) {
+        ev.preventDefault()
+        useLumina.getState().setPanelOpen(false)
+        return
+      }
+      const now = performance.now()
+      const dbl = now - lastClick.current < 280
+      lastClick.current = now
       const placing = useLumina.getState().placeMode && ev.button === 0
       if (hit && ev.button === 0) {
         ev.preventDefault()
@@ -324,6 +332,34 @@ export default function App() {
         className={`absolute inset-0 h-full w-full touch-none ${placeMode ? 'cursor-crosshair' : ''}`}
       />
 
+      {panelOpen && (
+        <div className="lumina-sidebar pointer-events-none absolute top-0 right-0 z-20 h-[calc(100dvh-4.5rem)] w-[min(78vw,300px)] pt-[max(0.35rem,env(safe-area-inset-top))] md:hidden">
+          <div className="pointer-events-auto h-full">
+            <SwipeSidebar onClose={() => setPanelOpen(false)}>
+              <ControlPanel
+                compact
+                fps={stats.fps}
+                particles={stats.particles}
+                frameMs={stats.frameMs}
+                memoryMb={stats.memoryMb}
+              />
+            </SwipeSidebar>
+          </div>
+        </div>
+      )}
+
+      {!panelOpen && (
+        <button
+          type="button"
+          title="Einstellungen"
+          aria-label="Einstellungen"
+          className="pointer-events-auto absolute top-[38%] right-0 z-20 flex h-16 w-7 items-center justify-center rounded-l-xl border border-r-0 border-white/10 bg-[#16181e]/80 text-white/70 md:hidden"
+          onClick={() => setPanelOpen(true)}
+        >
+          <SlidersHorizontal size={16} />
+        </button>
+      )}
+
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pt-[max(0.75rem,env(safe-area-inset-top))] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] md:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="md:hidden">
@@ -337,13 +373,13 @@ export default function App() {
           </div>
         </div>
 
-        <div className="mt-auto flex w-full items-end justify-between gap-3 max-md:flex-col max-md:items-stretch">
+        <div className="mt-auto flex w-full items-end justify-between gap-3">
           <div className="max-md:hidden">
             <Onboarding />
           </div>
-          <div className="flex w-full flex-col items-end gap-2 max-md:items-stretch max-md:gap-0 md:w-auto md:flex-1 md:gap-3">
+          <div className="ml-auto flex w-full flex-col items-end gap-3 md:w-auto">
             {panelOpen && (
-              <div className="lumina-sheet h-[min(48dvh,420px)] w-full shrink-0 md:h-[min(70dvh,760px)] md:w-auto">
+              <div className="hidden h-[min(70dvh,760px)] md:block">
                 <ControlPanel
                   fps={stats.fps}
                   particles={stats.particles}
@@ -352,7 +388,7 @@ export default function App() {
                 />
               </div>
             )}
-            <div className="shrink-0 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0">
+            <div className="w-full max-md:max-w-none md:w-auto pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-0">
               <Toolbar
                 paused={paused}
                 recording={recording}

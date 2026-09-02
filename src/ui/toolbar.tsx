@@ -61,15 +61,11 @@ export function Toolbar({
   const redo = useLumina((s) => s.redo)
 
   return (
-    <div
-      className={`lumina-toolbar pointer-events-auto flex max-w-full flex-nowrap items-center gap-0.5 overflow-x-auto rounded-2xl border border-white/10 bg-[#0c0e13]/72 px-1.5 py-1 shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl max-md:w-full max-md:justify-start md:gap-1.5 md:px-2 md:py-1.5 ${
-        panelOpen ? 'max-md:rounded-t-none max-md:border-t-0' : ''
-      }`}
-    >
+    <div className="lumina-toolbar pointer-events-auto flex max-w-full flex-nowrap items-center justify-around gap-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0c0e13]/72 px-1 py-1 shadow-[0_12px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl max-md:w-full md:justify-start md:gap-1.5 md:overflow-visible md:px-2 md:py-1.5">
       <button
         type="button"
         title="Rückgängig (Strg+Z)"
-        className="lumina-icon"
+        className="lumina-icon max-md:hidden"
         disabled={!canUndo}
         onClick={undo}
       >
@@ -78,13 +74,13 @@ export function Toolbar({
       <button
         type="button"
         title="Wiederholen (Strg+Y)"
-        className="lumina-icon"
+        className="lumina-icon max-md:hidden"
         disabled={!canRedo}
         onClick={redo}
       >
         <Redo2 size={16} />
       </button>
-      <span className="mx-0.5 h-6 w-px shrink-0 bg-white/10 md:mx-1" />
+      <span className="mx-1 hidden h-6 w-px shrink-0 bg-white/10 md:block" />
       {TOOLS.map((t) => {
         const Icon = t.icon
         const active = tool === t.id
@@ -108,33 +104,33 @@ export function Toolbar({
         {paused ? <Play size={16} /> : <Pause size={16} />}
         <HoverKbd keys="␣" />
       </button>
-      <button type="button" title="Reset (R)" className="group lumina-icon" onClick={onReset}>
+      <button type="button" title="Reset (R)" className="group lumina-icon max-md:hidden" onClick={onReset}>
         <RotateCcw size={16} />
         <HoverKbd keys="R" />
       </button>
-      <button type="button" title="Leeren (C)" className="group lumina-icon" onClick={onClear}>
+      <button type="button" title="Leeren (C)" className="group lumina-icon max-md:hidden" onClick={onClear}>
         <Trash2 size={16} />
         <HoverKbd keys="C" />
       </button>
-      <button type="button" title="Zufall (X)" className="group lumina-icon" onClick={onRandom}>
+      <button type="button" title="Zufall (X)" className="group lumina-icon max-md:hidden" onClick={onRandom}>
         <Dices size={16} />
         <HoverKbd keys="X" />
       </button>
-      <button type="button" title="Evolve (V)" className="group lumina-icon" onClick={onEvolve}>
+      <button type="button" title="Evolve (V)" className="group lumina-icon max-md:hidden" onClick={onEvolve}>
         <Sparkles size={16} />
         <HoverKbd keys="V" />
       </button>
       <button
         type="button"
         title="Aufnahme"
-        className={`lumina-icon ${recording ? 'text-rose-300' : ''}`}
+        className={`lumina-icon max-md:hidden ${recording ? 'text-rose-300' : ''}`}
         onClick={onRecord}
       >
         <CircleDot size={16} />
       </button>
       <button
         type="button"
-        title="Panel (H)"
+        title="Einstellungen"
         className={`group lumina-icon ${panelOpen ? 'text-white' : ''}`}
         onClick={() => setPanelOpen(!panelOpen)}
       >

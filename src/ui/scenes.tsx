@@ -23,7 +23,7 @@ export function SceneOverview({
 }) {
   return (
     <>
-      <p className="hidden px-1 font-ui text-[12px] text-white/40 md:block">
+      <p className="px-1 font-ui text-[12px] text-white/40">
         Vier Arten. Jede Szene bringt Takt und Farbe mit.
       </p>
       {SCENE_GROUPS.map((group) => {
@@ -33,7 +33,7 @@ export function SceneOverview({
           <Group key={group.id} title={group.title}>
             <Row>
               <p className="mb-2 hidden font-ui text-[11px] leading-snug text-white/34 md:block">{group.blurb}</p>
-              <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-1 md:overflow-visible md:pb-0">
+              <div className="grid grid-cols-1 gap-2">
                 {cards.map((card) => {
                   const active = activeId === card.id
                   return (
@@ -41,7 +41,7 @@ export function SceneOverview({
                       key={card.id}
                       type="button"
                       onClick={() => onPick(card.id)}
-                      className={`min-w-[9.25rem] shrink-0 rounded-[12px] px-3 py-2 text-left ring-1 md:min-w-0 ${
+                      className={`rounded-[12px] px-3 py-2 text-left ring-1 ${
                         active ? 'bg-white/14 ring-white/22' : 'bg-black/20 ring-white/6 hover:bg-white/6'
                       }`}
                     >

@@ -133,21 +133,18 @@ body {
 }
 
 @media (max-width: 767px) {
-  .lumina-sheet {
-    height: min(48dvh, 420px);
-    max-height: 48svh;
-    max-height: 48dvh;
+  .lumina-sidebar {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .lumina-icon {
-    height: 44px;
-    width: 44px;
-    min-height: 44px;
-    min-width: 44px;
+    height: 40px;
+    width: 40px;
+    min-height: 40px;
+    min-width: 40px;
   }
 
   .lumina-toolbar {
-    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
 
